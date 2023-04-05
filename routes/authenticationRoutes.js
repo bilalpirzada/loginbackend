@@ -3,9 +3,35 @@ const Account = mongoose.model('accounts');
 
 module.exports = app => {
 
-    //routes
-    app.get('/account', async (req, res) => {
-        const { username, password } = req.query;
+    //login route
+    app.post('/account/login', async (req, res) => {
+        console.log(req.body);
+        const { username, password } = req.body;
+
+        if (username == null || password == null) {
+            res.send("Invalid Credentials");
+            return;
+        }
+
+        var userAccount = await Account.findOne({ username: username });
+      if(userAccount!=null){
+            if (password == userAccount.password) {
+                userAccount.lastAuthentication = Date.now();
+                await userAccount.save();
+
+                console.log("Retrieving Account");
+                res.send(userAccount);
+                return;
+            }
+        }
+        res.send("Invalid Credentials");
+    });
+
+
+//
+     app.post('/account/create', async (req, res) => {
+        console.log(req.body);
+        const { username, password } = req.body;
 
         if (username == null || password == null) {
             res.send("Invalid Credentials")
@@ -29,14 +55,7 @@ module.exports = app => {
             return;
         }
         else {
-            if (password == userAccount.password) {
-                userAccount.lastAuthentication = Date.now();
-                await userAccount.save();
-
-                console.log("Retrieving Account");
-                res.send(userAccount);
-                return;
-            }
+            res.send("username is already taken");
         }
     });
 }
